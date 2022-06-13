@@ -50,10 +50,9 @@ global without sharing class BettingAPI {
         }
 
         if (BettingQueryManager.checkIfRelatedOppExists(opportunity.Name)) {
-            opportunity = [SELECT Id,Name FROM Opportunity WHERE Name=:opportunity.Name LIMIT 1];
+            opportunity = BettingQueryManager.getExistingOpportunity(opportunity.Name);
         }
 
-        //Double summary = 0;
         if (bettingInput.betUnits.errorMessege=='') {
             for(ParseJSONBettingInput.UnitInstance newUnit: bettingInput.betUnits.parsedBetUnits){
                 Double calculatedCoefficient = newUnit.Coefficient;
@@ -64,10 +63,8 @@ global without sharing class BettingAPI {
                     Bet_Unit__c betUnit = new Bet_Unit__c(Name = newUnit.Name,Bet_Amount__c = newUnit.Amount,
                                                         Coefficient__c = calculatedCoefficient,Bet_Event__c = betEvent.Id);
                     betUnitsOnEvent.add(betUnit);
-                    //summary += betUnit.Bet_Amount__c;
                 }
             }
-            //opportunity.Amount = summary;
         }
         else {
             res.statusCode = 400;
@@ -88,7 +85,7 @@ global without sharing class BettingAPI {
 
         if (res.statusCode != 400) {
             upsert opportunity;
-            List<Bet_Unit__c> existingUnits = [SELECT Name FROM Bet_Unit__c WHERE Opportunity__c =: opportunity.Id];
+            List<Bet_Unit__c> existingUnits = BettingQueryManager.getExistingUnits(opportunity.Id);
             Set<String> unitNames = new Set<String>();
             if (existingUnits.size()>0) {
                     for (Bet_Unit__c checkNameOfUnit : existingUnits) {
@@ -103,6 +100,7 @@ global without sharing class BettingAPI {
                     if (unitNames.contains(betUnit.Name)) {
                         res.statusCode = 400;
                         res.responseBody = Blob.valueOf('Attempt to make same bet on event!');
+                        break;
                     } 
                     else {
                         betUnit.Opportunity__c = opportunity.Id;
