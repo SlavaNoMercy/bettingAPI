@@ -16,12 +16,9 @@ global without sharing class BettingAPI {
         if(bettingInput.playerID.length()==18||
            bettingInput.playerID.length()==15){
             Id playerId = (Id)bettingInput.playerID;
-            try{    
-                playerLead = [SELECT Id,LastName FROM Lead WHERE Id=:playerId LIMIT 1];
-            } catch(System.QueryException e){}
-            try{    
-                playerContact = [SELECT Id,Name FROM Contact WHERE Id=:playerId LIMIT 1];
-            } catch(System.QueryException e){}
+            playerLead = BettingQueryManager.getLeadPlayer(playerId);
+            playerContact = BettingQueryManager.getContactPlayer(playerId);
+            
             if (playerLead !=null) {
                 opportunity.Name = playerLead.LastName;
                 opportunity.Lead_Player__c = playerLead.Id;
@@ -39,11 +36,13 @@ global without sharing class BettingAPI {
         if(bettingInput.matchID.length()==18||
            bettingInput.matchID.length()==15){
             Id matchId = (Id)bettingInput.matchID;
-            betEvent = [SELECT Id, Name, Multiplier__c,Event_Date__c FROM Product2 WHERE Id =:matchId LIMIT 1];
-            opportunity.Name += ' ' + betEvent.Name;
+            betEvent = BettingQueryManager.getBetEvent(matchId);
             if (betEvent==null) {
                 res.statusCode = 400;
                 res.responseBody = Blob.valueOf('Bet Event doesn\'t exist');
+            }
+            else {
+                opportunity.Name += ' ' + betEvent.Name;
             }
         } else {
             res.statusCode = 400;
@@ -71,18 +70,20 @@ global without sharing class BettingAPI {
             //opportunity.Amount = summary;
         }
         else {
-            res.statusCode=400;
+            res.statusCode = 400;
             res.responseBody = Blob.valueOf(bettingInput.betUnits.errorMessege);
         }
 
-        if (Date.today() <= betEvent.Event_Date__c&&res.statusCode!=400) {
-            opportunity.Bet_Time__c = Datetime.now();
-            opportunity.CloseDate = betEvent.Event_Date__c;
-            opportunity.StageName = 'Prospecting';
-        }
-        else {
-            res.statusCode = 400;
-            res.responseBody = Blob.valueOf('Too late to make bets on this Event');
+        if(res.statusCode!=400 && betEvent!=null){
+            if (Date.today() <= betEvent.Event_Date__c) {
+                opportunity.Bet_Time__c = Datetime.now();
+                opportunity.CloseDate = betEvent.Event_Date__c;
+                opportunity.StageName = 'Prospecting';
+            }
+            else {
+                res.statusCode = 400;
+                res.responseBody = Blob.valueOf('Too late to make bets on this Event');
+            }
         }
 
         if (res.statusCode != 400) {
@@ -106,7 +107,7 @@ global without sharing class BettingAPI {
                     else {
                         betUnit.Opportunity__c = opportunity.Id;
                         res.statusCode = 200;
-                        res.responseBody = Blob.valueOf('Success');
+                        res.responseBody = Blob.valueOf('The bet was successfully registered');
                     }
                 }
                 if (res.statusCode==200) {
