@@ -4,17 +4,115 @@ global without sharing class BettingAPI {
     global static void createOpportunity() {
         RestRequest req = RestContext.request;
         RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        Lead playerLead = null;
+        Contact playerContact = null;
         Opportunity opportunity = new Opportunity();
-        Product2 betEvent;
-        List<Bet_unit__c> betUnits = new List<Bet_unit__c>();
+        Product2 betEvent = null;
+        List<Bet_unit__c> betUnitsOnEvent = new List<Bet_unit__c>();
 
         ParseJSONBettingInput bettingInput = ParseJSONBettingInput.parse((req.requestBody).toString());
 
-        
+        if(bettingInput.playerID.length()==18||
+           bettingInput.playerID.length()==15){
+            Id playerId = (Id)bettingInput.playerID;
+            try{    
+                playerLead = [SELECT Id,LastName FROM Lead WHERE Id=:playerId LIMIT 1];
+            } catch(System.QueryException e){}
+            try{    
+                playerContact = [SELECT Id,Name FROM Contact WHERE Id=:playerId LIMIT 1];
+            } catch(System.QueryException e){}
+            if (playerLead !=null) {
+                opportunity.Name = playerLead.LastName;
+                opportunity.Lead_Player__c = playerLead.Id;
+            } 
+            else if (playerContact !=null) {
+                opportunity.Name = playerContact.Name;
+                opportunity.Contact_Player__c = playerContact.Id;
+            } else { 
+                res.statusCode = 400;
+                // Auth error
+                res.responseBody = Blob.valueOf('Authentication Error');
+            } 
+        } 
 
-        for(ParseJSONBettingInput.UnitInstance newUnit: bettingInput.betUnits.parsedBetUnits){
-            Bet_Unit__c betUnit = new Bet_Unit__c(Name=newUnit.Name,Amount__c=newUnit.Amount,
-                                                  Coefficient__c=newUnit.Coefficient,Opportunity__c=opportunity.Id);
+        if(bettingInput.matchID.length()==18||
+           bettingInput.matchID.length()==15){
+            Id matchId = (Id)bettingInput.matchID;
+            betEvent = [SELECT Id, Name, Multiplier__c,Event_Date__c FROM Product2 WHERE Id =:matchId LIMIT 1];
+            opportunity.Name += ' ' + betEvent.Name;
+            if (betEvent==null) {
+                res.statusCode = 400;
+                res.responseBody = Blob.valueOf('Bet Event doesn\'t exist');
+            }
+        } else {
+            res.statusCode = 400;
+            res.responseBody = Blob.valueOf('ID field must be 15 or 18 symbols');
+        }
+
+        if (BettingQueryManager.checkIfRelatedOppExists(opportunity.Name)) {
+            opportunity = [SELECT Id,Name FROM Opportunity WHERE Name=:opportunity.Name LIMIT 1];
+        }
+
+        //Double summary = 0;
+        if (bettingInput.betUnits.errorMessege=='') {
+            for(ParseJSONBettingInput.UnitInstance newUnit: bettingInput.betUnits.parsedBetUnits){
+                Double calculatedCoefficient = newUnit.Coefficient;
+                if (betEvent!=null&&betEvent.Multiplier__c>=0) {
+                    calculatedCoefficient = newUnit.Coefficient * betEvent.Multiplier__c;
+                }
+                if(res.statusCode!=400){
+                    Bet_Unit__c betUnit = new Bet_Unit__c(Name = newUnit.Name,Bet_Amount__c = newUnit.Amount,
+                                                        Coefficient__c = calculatedCoefficient,Bet_Event__c = betEvent.Id);
+                    betUnitsOnEvent.add(betUnit);
+                    //summary += betUnit.Bet_Amount__c;
+                }
+            }
+            //opportunity.Amount = summary;
+        }
+        else {
+            res.statusCode=400;
+            res.responseBody = Blob.valueOf(bettingInput.betUnits.errorMessege);
+        }
+
+        if (Date.today() <= betEvent.Event_Date__c&&res.statusCode!=400) {
+            opportunity.Bet_Time__c = Datetime.now();
+            opportunity.CloseDate = betEvent.Event_Date__c;
+            opportunity.StageName = 'Prospecting';
+        }
+        else {
+            res.statusCode = 400;
+            res.responseBody = Blob.valueOf('Too late to make bets on this Event');
+        }
+
+        if (res.statusCode != 400) {
+            upsert opportunity;
+            List<Bet_Unit__c> existingUnits = [SELECT Name FROM Bet_Unit__c WHERE Opportunity__c =: opportunity.Id];
+            Set<String> unitNames = new Set<String>();
+            if (existingUnits.size()>0) {
+                    for (Bet_Unit__c checkNameOfUnit : existingUnits) {
+                    unitNames.add(checkNameOfUnit.Name);
+                }
+            }
+            if (betUnitsOnEvent.size()>15) {
+                res.statusCode = 400;
+                res.responseBody = Blob.valueOf('Too much bet units on Event');
+            }else {
+                for (Bet_Unit__c betUnit : betUnitsOnEvent) {
+                    if (unitNames.contains(betUnit.Name)) {
+                        res.statusCode = 400;
+                        res.responseBody = Blob.valueOf('Attempt to make same bet on event!');
+                    } 
+                    else {
+                        betUnit.Opportunity__c = opportunity.Id;
+                        res.statusCode = 200;
+                        res.responseBody = Blob.valueOf('Success');
+                    }
+                }
+                if (res.statusCode==200) {
+                    insert betUnitsOnEvent;
+                }
+            }
         }
     }
 }
