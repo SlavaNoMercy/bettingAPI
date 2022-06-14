@@ -1,8 +1,15 @@
 public with sharing class BettingQueryManager {
+    //Форматирование, убрать ненужные зануления, добавить проверку входящих параметров, убрать излишки переменных
     public static Boolean checkIfRelatedOppExists(String Name){
         Boolean isOpportunityExists;
         try {
-            Opportunity betOpportunity = [SELECT Id,Name FROM Opportunity WHERE Name=:Name LIMIT 1];
+            Opportunity betOpportunity = [
+                                            SELECT
+                                                Id, Name 
+                                            FROM Opportunity 
+                                            WHERE Name=:Name 
+                                            LIMIT 1
+                                        ];
             isOpportunityExists = true;
         } catch (System.QueryException e) {
             isOpportunityExists = false;
