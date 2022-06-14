@@ -5,23 +5,27 @@ public without sharing class ParseJSONBettingInput {
 	public String errorMessage = ''; 
 
 	public ParseJSONBettingInput(JSONParser parser) {
-		while (parser.nextToken() != System.JSONToken.END_OBJECT) {
-			if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
-				String text = parser.getText();
-				if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
-					if (text == 'matchID') {
-						matchID = parser.getText();
-					} else if (text == 'playerID') {
-						playerID = parser.getText();
-					} else if (text == 'betUnits') {
-						betUnits = new BetUnits(parser);
-					} else {
-						System.debug(LoggingLevel.WARN, 'ParseJSONBettingInput consuming unrecognized property: '+text);
-						errorMessage = 'Parser consuming unrecognized property: '+text;
-						consumeObject(parser);
+		try{
+			while (parser.nextToken() != System.JSONToken.END_OBJECT) {
+				if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
+					String text = parser.getText();
+					if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
+						if (text == 'matchID') {
+							matchID = parser.getText();
+						} else if (text == 'playerID') {
+							playerID = parser.getText();
+						} else if (text == 'betUnits') {
+							betUnits = new BetUnits(parser);
+						} else {
+							System.debug(LoggingLevel.WARN, 'ParseJSONBettingInput consuming unrecognized property: '+text);
+							errorMessage = 'Parser consuming unrecognized property: '+text;
+							consumeObject(parser);
+						}
 					}
 				}
 			}
+		} catch(System.JSONException e){
+			errorMessage = e.getMessage();
 		}
 	}
 	
@@ -31,25 +35,28 @@ public without sharing class ParseJSONBettingInput {
         Set<String> unitNamesParsed = new Set<String>();
 
 		public BetUnits(JSONParser parser) {
-			while (parser.nextToken() != System.JSONToken.END_OBJECT) {
-				if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
-					String text = parser.getText();
-					if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
-						if (text != '' && !unitNamesParsed.contains(text)) {
-						// 	unitInstance0 = new UnitInstance(parser);
-						// } else if (text == 'unitInstance1') {
-						// 	unitInstance1 = new UnitInstance(parser); 
-                            unitNamesParsed.add(text);
-                            UnitInstance unitInstance = new UnitInstance(parser);
-                            parsedBetUnits.add(unitInstance);
-                        } else {
-							System.debug(LoggingLevel.WARN, 'BetUnits consuming unrecognized property: '+text);
-                            errorMessage = 'Unavailable Bet Unit or 2 Units have the same name property: '+text;
-							consumeObject(parser);
+			try{
+				while (parser.nextToken() != System.JSONToken.END_OBJECT) {
+					if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
+						String text = parser.getText();
+						if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
+							if (text != '' && !unitNamesParsed.contains(text)) {
+							// 	unitInstance0 = new UnitInstance(parser);
+							// } else if (text == 'unitInstance1') {
+							// 	unitInstance1 = new UnitInstance(parser); 
+								unitNamesParsed.add(text);
+								UnitInstance unitInstance = new UnitInstance(parser);
+								parsedBetUnits.add(unitInstance);
+							} else {
+								System.debug(LoggingLevel.WARN, 'BetUnits consuming unrecognized property: '+text);
+								errorMessage = 'Unavailable Bet Unit or 2 Units have the same name property: '+text;
+								consumeObject(parser);
+							}
 						}
 					}
 				}
-			}
+			} 
+			catch(System.JSONException e){ throw e;}
 		}
 	}
 	
@@ -60,23 +67,28 @@ public without sharing class ParseJSONBettingInput {
 		public String errorMessage = '';
 
 		public UnitInstance(JSONParser parser) {
-			while (parser.nextToken() != System.JSONToken.END_OBJECT) {
-				if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
-					String text = parser.getText();
-					if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
-						if (text == 'Name') {
-							Name = parser.getText();
-						} else if (text == 'Coefficient') {
-							Coefficient = Double.valueOf(parser.getText());
-						} else if (text == 'Amount') {
-							Amount = Double.valueOf(parser.getText());
-						} else {
-							System.debug(LoggingLevel.WARN, 'UnitInstance consuming unrecognized property: '+text);
-							errorMessage = 'UnitInstance consuming unrecognized property: '+text;
-							consumeObject(parser);
+			try{
+				while (parser.nextToken() != System.JSONToken.END_OBJECT) {
+					if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
+						String text = parser.getText();
+						if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
+							if (text == 'Name') {
+								Name = parser.getText();
+							} else if (text == 'Coefficient') {
+								Coefficient = Double.valueOf(parser.getText());
+							} else if (text == 'Amount') {
+								Amount = Double.valueOf(parser.getText());
+							} else {
+								System.debug(LoggingLevel.WARN, 'UnitInstance consuming unrecognized property: '+text);
+								errorMessage = 'UnitInstance consuming unrecognized property: '+text;
+								consumeObject(parser);
+							}
 						}
 					}
 				}
+			}
+			catch(System.JSONException e){
+				throw e;
 			}
 		}
 	}
