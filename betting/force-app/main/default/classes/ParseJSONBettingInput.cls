@@ -1,7 +1,8 @@
 public without sharing class ParseJSONBettingInput {
 	public String matchID {get;set;} 
 	public String playerID {get;set;} 
-	public BetUnits betUnits {get;set;} 
+	public BetUnits betUnits {get;set;}
+	public String errorMessage = ''; 
 
 	public ParseJSONBettingInput(JSONParser parser) {
 		while (parser.nextToken() != System.JSONToken.END_OBJECT) {
@@ -16,6 +17,7 @@ public without sharing class ParseJSONBettingInput {
 						betUnits = new BetUnits(parser);
 					} else {
 						System.debug(LoggingLevel.WARN, 'ParseJSONBettingInput consuming unrecognized property: '+text);
+						errorMessage = 'Parser consuming unrecognized property: '+text;
 						consumeObject(parser);
 					}
 				}
@@ -25,7 +27,7 @@ public without sharing class ParseJSONBettingInput {
 	
 	public class BetUnits { 
         public List<UnitInstance> parsedBetUnits = new List<UnitInstance>();
-        public String errorMessege = ''; 
+        public String errorMessage = ''; 
         Set<String> unitNamesParsed = new Set<String>();
 
 		public BetUnits(JSONParser parser) {
@@ -42,7 +44,7 @@ public without sharing class ParseJSONBettingInput {
                             parsedBetUnits.add(unitInstance);
                         } else {
 							System.debug(LoggingLevel.WARN, 'BetUnits consuming unrecognized property: '+text);
-                            errorMessege = 'Unavailable Bet Unit or 2 Units have the same name property: '+text;
+                            errorMessage = 'Unavailable Bet Unit or 2 Units have the same name property: '+text;
 							consumeObject(parser);
 						}
 					}
@@ -55,6 +57,7 @@ public without sharing class ParseJSONBettingInput {
 		public String Name {get;set;} 
 		public Double Coefficient {get;set;} 
 		public Double Amount {get;set;} 
+		public String errorMessage = '';
 
 		public UnitInstance(JSONParser parser) {
 			while (parser.nextToken() != System.JSONToken.END_OBJECT) {
@@ -69,6 +72,7 @@ public without sharing class ParseJSONBettingInput {
 							Amount = Double.valueOf(parser.getText());
 						} else {
 							System.debug(LoggingLevel.WARN, 'UnitInstance consuming unrecognized property: '+text);
+							errorMessage = 'UnitInstance consuming unrecognized property: '+text;
 							consumeObject(parser);
 						}
 					}

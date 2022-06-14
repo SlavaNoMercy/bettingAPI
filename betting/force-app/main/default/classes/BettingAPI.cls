@@ -13,62 +13,73 @@ global without sharing class BettingAPI {
 
         ParseJSONBettingInput bettingInput = ParseJSONBettingInput.parse((req.requestBody).toString());
 
-        if(bettingInput.playerID.length()==18||
-           bettingInput.playerID.length()==15){
-            Id playerId = (Id)bettingInput.playerID;
-            playerLead = BettingQueryManager.getLeadPlayer(playerId);
-            playerContact = BettingQueryManager.getContactPlayer(playerId);
-            
-            if (playerLead !=null) {
-                opportunity.Name = playerLead.LastName;
-                opportunity.Lead_Player__c = playerLead.Id;
+        if(bettingInput.errorMessage==''){
+            if(bettingInput.playerID.length()==18||
+            bettingInput.playerID.length()==15){
+                Id playerId = (Id)bettingInput.playerID;
+                playerLead = BettingQueryManager.getLeadPlayer(playerId);
+                playerContact = BettingQueryManager.getContactPlayer(playerId);
+                
+                if (playerLead !=null) {
+                    opportunity.Name = playerLead.LastName;
+                    opportunity.Lead_Player__c = playerLead.Id;
+                } 
+                else if (playerContact !=null) {
+                    opportunity.Name = playerContact.Name;
+                    opportunity.Contact_Player__c = playerContact.Id;
+                } else { 
+                    res.statusCode = 400;
+                    // Auth error
+                    res.responseBody = Blob.valueOf('Authentication Error');
+                } 
             } 
-            else if (playerContact !=null) {
-                opportunity.Name = playerContact.Name;
-                opportunity.Contact_Player__c = playerContact.Id;
-            } else { 
-                res.statusCode = 400;
-                // Auth error
-                res.responseBody = Blob.valueOf('Authentication Error');
-            } 
-        } 
 
-        if(bettingInput.matchID.length()==18||
-           bettingInput.matchID.length()==15){
-            Id matchId = (Id)bettingInput.matchID;
-            betEvent = BettingQueryManager.getBetEvent(matchId);
-            if (betEvent==null) {
+            if(bettingInput.matchID.length()==18||
+            bettingInput.matchID.length()==15){
+                Id matchId = (Id)bettingInput.matchID;
+                betEvent = BettingQueryManager.getBetEvent(matchId);
+                if (betEvent==null) {
+                    res.statusCode = 400;
+                    res.responseBody = Blob.valueOf('Bet Event doesn\'t exist');
+                }
+                else {
+                    opportunity.Name += ' ' + betEvent.Name;
+                }
+            } else {
                 res.statusCode = 400;
-                res.responseBody = Blob.valueOf('Bet Event doesn\'t exist');
-            }
-            else {
-                opportunity.Name += ' ' + betEvent.Name;
+                res.responseBody = Blob.valueOf('ID field must be 15 or 18 symbols');
             }
         } else {
             res.statusCode = 400;
-            res.responseBody = Blob.valueOf('ID field must be 15 or 18 symbols');
+            res.responseBody = Blob.valueOf(bettingInput.errorMessage);
         }
 
         if (BettingQueryManager.checkIfRelatedOppExists(opportunity.Name)) {
             opportunity = BettingQueryManager.getExistingOpportunity(opportunity.Name);
         }
 
-        if (bettingInput.betUnits.errorMessege=='') {
+        if (bettingInput.betUnits.errorMessage=='') {
             for(ParseJSONBettingInput.UnitInstance newUnit: bettingInput.betUnits.parsedBetUnits){
-                Double calculatedCoefficient = newUnit.Coefficient;
-                if (betEvent!=null&&betEvent.Multiplier__c>=0) {
-                    calculatedCoefficient = newUnit.Coefficient * betEvent.Multiplier__c;
-                }
-                if(res.statusCode!=400){
-                    Bet_Unit__c betUnit = new Bet_Unit__c(Name = newUnit.Name,Bet_Amount__c = newUnit.Amount,
-                                                        Coefficient__c = calculatedCoefficient,Bet_Event__c = betEvent.Id);
-                    betUnitsOnEvent.add(betUnit);
+                if(newUnit.errorMessage==''){
+                    Double calculatedCoefficient = newUnit.Coefficient;
+                    if (betEvent!=null&&betEvent.Multiplier__c>=0) {
+                        calculatedCoefficient = newUnit.Coefficient * betEvent.Multiplier__c;
+                    }
+                    if(res.statusCode!=400){
+                        Bet_Unit__c betUnit = new Bet_Unit__c(Name = newUnit.Name,Bet_Amount__c = newUnit.Amount,
+                                                            Coefficient__c = calculatedCoefficient,Bet_Event__c = betEvent.Id);
+                        betUnitsOnEvent.add(betUnit);
+                    }
+                } else {
+                    res.statusCode = 400;
+                    res.responseBody = Blob.valueOf(newUnit.errorMessage);
+                    break;
                 }
             }
         }
         else {
             res.statusCode = 400;
-            res.responseBody = Blob.valueOf(bettingInput.betUnits.errorMessege);
+            res.responseBody = Blob.valueOf(bettingInput.betUnits.errorMessage);
         }
 
         if(res.statusCode!=400 && betEvent!=null){

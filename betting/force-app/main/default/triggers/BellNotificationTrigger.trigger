@@ -1,7 +1,17 @@
-trigger BellNotificationTrigger on Opportunity (after insert) {
+trigger BellNotificationTrigger on Opportunity (after insert, after update) {
     
     for(Opportunity opportunity: Trigger.new){
-        //if (opportunity.Amount>=10000) {
+        if (opportunity.Units_Amount__c>=10000) {
+            Flow.Interview flow = new Flow.Interview.AutolaunchedFlow_Bell_Notification(new map<String,Object> 
+                                                {'OpportunityRecord' => opportunity});     
+            flow.start();
+        }
+    }
+}
+
+
+
+ //if (opportunity.Amount>=10000) {
             // CustomNotificationType notificationType = 
             //     [SELECT Id, DeveloperName 
             //     FROM CustomNotificationType 
@@ -24,10 +34,3 @@ trigger BellNotificationTrigger on Opportunity (after insert) {
             //     System.debug('Problem sending notification: ' + e.getMessage());
             // }            
         //}
-        if (opportunity.Amount>=10000) {
-            Flow.Interview flow = new Flow.Interview.AutolaunchedFlow_Bell_Notification(new map<String,Object> 
-                                                {'OpportunityRecord' => opportunity});     
-            flow.start();
-        }
-    }
-}
