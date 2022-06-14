@@ -35,7 +35,7 @@ public without sharing class ParseJSONBettingInput {
 	public class BetUnits { 
         public List<UnitInstance> parsedBetUnits = new List<UnitInstance>();
         //public String errorMessage = ''; 
-        Set<String> unitNamesParsed = new Set<String>();
+        //Set<String> unitNamesParsed = new Set<String>();
 
 		// public BetUnits(JSONParser parser) {
 		// 	try{
@@ -97,7 +97,9 @@ public without sharing class ParseJSONBettingInput {
 	public static ParseJSONBettingInput parse(String jsonString) {
 		// System.JSONParser parser = System.JSON.createParser(json);
 		// return new ParseJSONBettingInput(parser);
-		return JSONParser.deserializeStrict(jsonString, ParseJSONBettingInput.class); 
+		Map<String,String> kkkkkkkkk = (Map<String,String>) JSON.deserializeUntyped(jsonString);
+		String eventId = kkkkkkkkk.get('matchId');
+		String playerID = kkkkkkkkk.get('playerId'); 
 	}
 	
 	// public static void consumeObject(System.JSONParser parser) {

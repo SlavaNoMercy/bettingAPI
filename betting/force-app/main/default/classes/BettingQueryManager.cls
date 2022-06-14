@@ -1,7 +1,6 @@
 public with sharing class BettingQueryManager {
     //Форматирование, убрать ненужные зануления, добавить проверку входящих параметров, убрать излишки переменных
     public static Boolean checkIfRelatedOppExists(String Name){
-        Boolean isOpportunityExists;
         try {
             Opportunity betOpportunity = [
                                             SELECT
@@ -10,11 +9,10 @@ public with sharing class BettingQueryManager {
                                             WHERE Name=:Name 
                                             LIMIT 1
                                         ];
-            isOpportunityExists = true;
+            return true;
         } catch (System.QueryException e) {
-            isOpportunityExists = false;
+            return false;
         }
-        return isOpportunityExists;
     }
 
     public static Lead getLeadPlayer (Id playerId){
