@@ -5,8 +5,8 @@ public class ParseJSONBettingInput {
 
   public class BetUnit {
     public String Name;
-    public String Coefficient;
-    public String Amount;
+    public Double Coefficient;
+    public Double Amount;
   }
 
   public static ParseJSONBettingInput parseJsonString(String json) {

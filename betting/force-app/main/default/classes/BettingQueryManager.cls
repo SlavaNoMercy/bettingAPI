@@ -1,21 +1,5 @@
 public with sharing class BettingQueryManager {
   //Форматирование, убрать ненужные зануления, добавить проверку входящих параметров, убрать излишки переменных
-  public static Boolean checkIfRelatedOppExists(String Name) {
-    try {
-      Opportunity betOpportunity = [
-        SELECT 
-            Id,
-            Name
-        FROM Opportunity
-        WHERE Name = :Name
-        LIMIT 1
-      ];
-      return true;
-    } catch (System.QueryException e) {
-      return false;
-    }
-  }
-
   public static Lead getLeadPlayer(Id playerId) {
     try {
       return [
@@ -66,7 +50,9 @@ public with sharing class BettingQueryManager {
     try {
       return [
         SELECT 
-            Name
+            Name,
+            Coefficient__c,
+            Bet_Amount__c
         FROM Bet_Unit__c
         WHERE Opportunity__c = :opportunityId
       ];
@@ -74,7 +60,7 @@ public with sharing class BettingQueryManager {
       return null;
     }
   }
-  public static Opportunity getExistingOpportunity(String Name) {
+  public static Opportunity getExistingOpportunity(Id playerId) {
     try {
       return [
         SELECT
@@ -86,7 +72,9 @@ public with sharing class BettingQueryManager {
             Players_Fund_After_Bet__c,
             Players_Fund_Before_Bet__c
         FROM Opportunity
-        WHERE Name = :Name
+        WHERE 
+            Lead_Player__c =:playerId OR
+            Contact_Player__c =:playerId
         LIMIT 1
       ];
     } catch (System.QueryException e) {
