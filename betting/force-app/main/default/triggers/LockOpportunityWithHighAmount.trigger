@@ -6,12 +6,13 @@ trigger LockOpportunityWithHighAmount on Opportunity (before update) {
         typeMap.put(recordType.DeveloperName, recordType.id);
     }
 
+    User user = [SELECT Id FROM User WHERE UserRole.Name='Chief Betting Manager' LIMIT 1];
     for (Opportunity opp : Trigger.new)  {        
         if (opp.StageName == 'Closed Won'&&opp.Units_Amount__c >=5000) {//константа
             opp.RecordTypeID = typeMap.get('ReadOnly');
             opp.Important__c = true;
 
-            User user = [SELECT Id FROM User WHERE UserRole.Name='Chief Betting Manager' LIMIT 1]; // МЫ В ЦИКЛЕ!!!!!
+             // МЫ В ЦИКЛЕ!!!!!
             Id playerId;
             if (opp.Lead_Player__c!=null) {
                 playerId = opp.Lead_Player__c;

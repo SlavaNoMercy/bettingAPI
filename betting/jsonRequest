@@ -1,16 +1,16 @@
 {
   "matchID":"01t5j000005lbIcAAI",
   "playerID":"00Q5j00000CFEcYEAX",
-  "betUnits":{
-      "unitInstance0":{
-            "Name":"Lose", 
-            "Coefficient":"3.22",
-            "Amount":"100"
-            },
-      "unitInstance1":{       
-            "Name":"Draw",
-            "Coefficient":"4.35",
-            "Amount":"20"
-            }
-  }
+  "betUnits":[
+      {
+        "Name":"Lose", 
+        "Coefficient":"3.22",
+        "Amount":"100"
+      },
+      {       
+        "Name":"Draw",
+        "Coefficient":"4.35",
+        "Amount":"20"
+      }
+  ]
 }
