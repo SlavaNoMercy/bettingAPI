@@ -1,4 +1,4 @@
-@RestResource(urlMapping='/bettingAPI/') //имеющий смысл урл
+@RestResource(urlMapping='/bettingAPI/new/opportunity') //имеющий смысл урл
 global without sharing class BettingAPI {
   @HttpPost
   global static void createOpportunity() {
@@ -71,97 +71,13 @@ global without sharing class BettingAPI {
       setDataToResponse(res, opportunity, betUnitsOnEvent);
       return;
     } catch (Exception e) {
-      setErrorToResponse(res, e.getMessage());
+      setErrorToResponse(res, e.getStackTraceString());
       return;
     }
   }
 
-  //     if (bettingInput.betUnits.errorMessage == '') {
-  //       // заменить на нормальное условие
-  //       Double summary = 0; //имя
-  //       for (
-  //         ParseJSONBettingInput.UnitInstance newUnit : bettingInput.betUnits.parsedBetUnits
-  //       ) {
-  //         if (newUnit.errorMessage == '') {
-  //           // инвертируй
-  //           Double calculatedCoefficient = newUnit.Coefficient; //!коэф по другому пишется
-  //           if (betEvent != null && betEvent.Multiplier__c >= 0) {
-  //             //инвертируй
-  //             calculatedCoefficient =
-  //               newUnit.Coefficient * betEvent.Multiplier__c;
-  //           }
-  //           if (res.statusCode != 400) {
-  //             // убрать везде
-  //             Bet_Unit__c betUnit = new Bet_Unit__c(
-  //               Name = newUnit.Name,
-  //               Bet_Amount__c = newUnit.Amount,
-  //               Coefficient__c = calculatedCoefficient,
-  //               Bet_Event__c = betEvent.Id
-  //             ); // пустой конструктор и присвоения
-
-  //             summary += betUnit.Bet_Amount__c;
-  //             if (
-  //               playerLead.Players_Fund__c >= summary ||
-  //               playerContact.Players_Fund__c >= summary
-  //             ) {
-  //               betUnitsOnEvent.add(betUnit);
-  //             } else {
-  //               res.statusCode = 400; //уже говорили
-  //               res.responseBody = Blob.valueOf('Players fund is not enought');
-  //             }
-  //           }
-  //         } else {
-  //           res.statusCode = 400;
-  //           res.responseBody = Blob.valueOf(newUnit.errorMessage);
-  //           break; //переделать что бы не было так много условий
-  //         }
-  //       }
-  //     } else {
-  //       //++++
-  //       res.statusCode = 400;
-  //       res.responseBody = Blob.valueOf(bettingInput.betUnits.errorMessage);
-  //     }
-
-  //     if (res.statusCode != 400) {
-  //       upsert opportunity; // разделить на условия
-  //       List<Bet_Unit__c> existingUnits = BettingQueryManager.getExistingUnits(
-  //         opportunity.Id
-  //       ); //same
-  //       Set<String> unitNames = new Set<String>();
-  //       if (existingUnits.size() > 0) {
-  //         for (Bet_Unit__c checkNameOfUnit : existingUnits) {
-  //           unitNames.add(checkNameOfUnit.Name);
-  //         }
-  //       }
-  //       if (betUnitsOnEvent.size() > 15) {
-  //         // проверка на суммарное количество а не только на которые пришли
-  //         res.statusCode = 400;
-  //         res.responseBody = Blob.valueOf('Too much bet units on Event'); //!!!!!!!!!!!!!!!
-  //       } else {
-  //         for (Bet_Unit__c betUnit : betUnitsOnEvent) {
-  //           if (unitNames.contains(betUnit.Name)) {
-  //             res.statusCode = 400;
-  //             res.responseBody = Blob.valueOf(
-  //               'Attempt to make same bet on event!'
-  //             );
-  //             break;
-  //           } else {
-  //             betUnit.Opportunity__c = opportunity.Id;
-  //             res.statusCode = 200;
-  //             res.responseBody = Blob.valueOf(
-  //               'The bet was successfully registered'
-  //             );
-  //           }
-  //         }
-  //         if (res.statusCode == 200) {
-  //           insert betUnitsOnEvent;
-  //         }
-  //       }
-  //     }
-  //   }
-
   public static void setErrorToResponse(RestResponse res, String message) {
-    if (res.responseBody.toString() == '') {
+    if (res.responseBody != null) {
       return;
     }
     res.statusCode = 400;
@@ -178,6 +94,9 @@ global without sharing class BettingAPI {
     Opportunity opportunity,
     List<Bet_Unit__c> betUnits
   ) {
+    if(res.statusCode==400){
+      return;
+    }
     res.statusCode = 200;
     JSONGenerator generator = JSON.createGenerator(true);
 
@@ -207,13 +126,15 @@ global without sharing class BettingAPI {
     // условие и только иначе вторая кверя ✓
     if (playerLead == null) {
       Contact playerContact = BettingQueryManager.getContactPlayer(playerId);
-      playerLead == null
-        ? opportunity.Contact_Player__c = playerContact.Id
-        : opportunity.Lead_Player__c = playerLead.Id;
-      opportunity.Name = playerContact.Name + playerLead.LastName;
+      opportunity.Contact_Player__c = playerContact.Id;
+      opportunity.Name = playerContact.Name;
+      opportunity.Players_Fund_Before_Bet__c = playerContact.Players_Fund__c;
     }
+    opportunity.Lead_Player__c = playerLead.Id;
+    opportunity.Name = playerLead.LastName;
+    opportunity.Players_Fund_Before_Bet__c = playerLead.Players_Fund__c;
     if (
-      opportunity.Lead_Player__c == null &
+      opportunity.Lead_Player__c == null &&
       opportunity.Contact_Player__c == null
     ) {
       setErrorToResponse(res, 'Authorization failure!');

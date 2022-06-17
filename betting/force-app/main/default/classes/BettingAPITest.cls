@@ -1,4 +1,4 @@
 @isTest
-public without sharing class TestBettingAPI {
+public without sharing class BettingAPITest {
     
 }

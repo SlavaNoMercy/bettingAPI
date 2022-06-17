@@ -76,9 +76,5 @@ public without sharing class BettingQueryManagerTest {
     System.assertEquals(null, notExistingEventRecord);
     System.assertEquals(null, notExistingBetRecord);
     System.assertEquals(0, notExistingUnitRecords.size());
-    System.assert(
-      BettingQueryManager.checkIfRelatedOppExists('testOpportunity')
-    );
-    System.assert(!BettingQueryManager.checkIfRelatedOppExists('qwwwe'));
   }
 }
