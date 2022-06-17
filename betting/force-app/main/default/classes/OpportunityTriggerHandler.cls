@@ -12,7 +12,7 @@ public without sharing class OpportunityTriggerHandler implements TriggerHandler
         // helper.doTask2();
     }
     public void beforeUpdate(List<Opportunity> oldOpportunities, List<Opportunity> newOpportunities, Map<ID, SObject> oldOpportunityMap, Map<ID, SObject> newOpportunityMap) {
-        //helper.lockOpportunityWithHighAmount();
+        helper.notifyChiefBetManager(newOpportunities,'Bet amount is bigger then $5000, bet closed won.');
     }
     public void beforeDelete(List<Opportunity> oldOpportunities, Map<ID, SObject> oldOpportunityMap) {
         // helper.doTask5();
@@ -21,8 +21,7 @@ public without sharing class OpportunityTriggerHandler implements TriggerHandler
     public void afterInsert(List<Opportunity> newOpportunities, Map<ID, SObject> newOpportunityMap) {
         helper.notifyChiefBetManager(newOpportunities,'Bet amount is bigger then $10000.');
     }
-    public void afterUpdate(List<Opportunity> oldOpportunities, List<Opportunity> newOpportunities, Map<ID, SObject> oldOpportunityMap, Map<ID, SObject> newOpportunityMap) {
-        helper.notifyChiefBetManager(newOpportunities,'Bet amount is bigger then $5000, bet closed won.');
+    public void afterUpdate(List<Opportunity> oldOpportunities, List<Opportunity> newOpportunities, Map<ID, SObject> oldOpportunityMap, Map<ID, SObject> newOpportunityMap) {        
     }
     public void afterDelete(List<Opportunity> oldOpportunities, Map<ID, SObject> oldOpportunityMap) {
         // helper.doTask3();

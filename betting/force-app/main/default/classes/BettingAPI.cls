@@ -22,6 +22,7 @@ global without sharing class BettingAPI {
           res,
           'Wrong Identifier of Player or Event (internal ID  must be 15 or 18 symbols lenth)!'
         ); //custom label
+        
         return;
       }
       List<Bet_unit__c> betUnitsOnEvent = new List<Bet_Unit__c>();
