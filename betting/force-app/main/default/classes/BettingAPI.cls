@@ -1,15 +1,13 @@
-@RestResource(urlMapping='/bettingAPI/new/opportunity') //имеющий смысл урл
+@RestResource(urlMapping='/bettingAPI/new/opportunity')
 global without sharing class BettingAPI {
   @HttpPost
   global static void createOpportunity() {
     RestRequest req = RestContext.request;
     RestResponse res = RestContext.response;
-    //res.statusCode = 200;//не нужен, только в конце
-    //Объявления по месту использования ✓
     try {
       ParseJSONBettingInput bettingInput = ParseJSONBettingInput.parseJsonString(
         (req.requestBody).toString()
-      ); // заменить на стандартный парсинг либо стрикт парсинг ✓
+      ); 
       Opportunity opportunity = new Opportunity();
       if (
         (bettingInput.playerID.length() == 18 ||
@@ -37,7 +35,7 @@ global without sharing class BettingAPI {
           existingBetUnitNames.add(existingBetUnit.Name);
         }
       } catch (Exception e) {
-      } //opp doesn't exist yet
+      } 
       Double currentBetAmount = 0;
       for (ParseJSONBettingInput.BetUnit newUnit : bettingInput.betUnits) {
         Bet_Unit__c betUnit = new Bet_Unit__c();
@@ -52,7 +50,6 @@ global without sharing class BettingAPI {
         }
         betUnit.Bet_Amount__c = newUnit.Amount;
         betUnit.Coefficient__c = newUnit.Coefficient;
-        //betUnit.Opportunity__c = opportunity.Id;
         betUnit.Bet_Event__c = BettingQueryManager.getBetEvent(
             (Id) bettingInput.matchID
           )
@@ -71,7 +68,7 @@ global without sharing class BettingAPI {
       setDataToResponse(res, opportunity, betUnitsOnEvent);
       return;
     } catch (Exception e) {
-      setErrorToResponse(res, e.getStackTraceString());
+      setErrorToResponse(res, e.getStackTraceString() + ' ' + e.getMessage());
       return;
     }
   }
@@ -101,6 +98,7 @@ global without sharing class BettingAPI {
     JSONGenerator generator = JSON.createGenerator(true);
 
     generator.writeStartObject();
+    generator.writeFieldName('opportunity');
     generator.writeObject(opportunity);
     generator.writeFieldName('betUnits');
     generator.writeStartArray();
@@ -123,7 +121,6 @@ global without sharing class BettingAPI {
   ) {
     Id playerId = (Id) stringPlayerID;
     Lead playerLead = BettingQueryManager.getLeadPlayer(playerId);
-    // условие и только иначе вторая кверя ✓
     if (playerLead == null) {
       Contact playerContact = BettingQueryManager.getContactPlayer(playerId);
       opportunity.Contact_Player__c = playerContact.Id;
@@ -137,7 +134,7 @@ global without sharing class BettingAPI {
       opportunity.Lead_Player__c == null &&
       opportunity.Contact_Player__c == null
     ) {
-      setErrorToResponse(res, 'Authorization failure!');
+      setErrorToResponse(res, 'Authorization failure!');//custom label
     }
     return opportunity;
   }
@@ -154,12 +151,12 @@ global without sharing class BettingAPI {
       if (Date.today() <= betEvent.Event_Date__c) {
         opportunity.Bet_Time__c = Datetime.now();
         opportunity.CloseDate = betEvent.Event_Date__c;
-        opportunity.StageName = BettingAPIConstants.DEFAULT_OPPORTUNITY_STAGE_NAME; //константа ✓
+        opportunity.StageName = BettingAPIConstants.DEFAULT_OPPORTUNITY_STAGE_NAME;
       } else {
-        setErrorToResponse(res, 'The chosen Event has already happened!');
+        setErrorToResponse(res, 'The chosen Event has already happened!');//custom label
       }
     } else {
-      setErrorToResponse(res, 'Event not available.');
+      setErrorToResponse(res, 'Event not available.');//custom label
     }
     return opportunity;
   }

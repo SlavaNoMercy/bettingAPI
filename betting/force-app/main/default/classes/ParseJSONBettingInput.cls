@@ -1,4 +1,5 @@
 public class ParseJSONBettingInput {
+  public String language;
   public String matchID;
   public String playerID;
   public List<BetUnit> betUnits;
