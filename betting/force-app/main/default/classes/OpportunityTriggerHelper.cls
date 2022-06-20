@@ -3,17 +3,17 @@ public without sharing class OpportunityTriggerHelper {
     List<Opportunity> opportunities,
     String title
   ) {
-    List<User> recipients = [
+    List<User> recipients = [// Выглядит как отдельный метод для мэнеджера
       SELECT Id
       FROM User
       WHERE UserRole.Name = :'Chief Betting Manager'
-      LIMIT 10
+      LIMIT 10// Почему?!
     ];
 
     List<Task> tasks = new List<Task>();
     for (Opportunity opportunity : opportunities) {
       if (opportunity.Units_Amount__c >= 10000) {
-        sendCustomNotification(opportunity, recipients, title);
+        sendCustomNotification(opportunity, recipients, title);// упадем в лимиты
       } else if (
         opportunity.Units_Amount__c >= 5000 &&
         opportunity.StageName == BettingAPIConstants.LOCK_OPPORTUNITY_STAGE_NAME
@@ -31,14 +31,14 @@ public without sharing class OpportunityTriggerHelper {
         newReview.Type = BettingAPIConstants.DEFAULT_TASK_TYPE;
         newReview.Description = 'Closed Won bet, amount:' + opportunity.Units_Amount__c;
         tasks.add(newReview);
-        sendCustomNotification(opportunity, recipients, title);
+        sendCustomNotification(opportunity, recipients, title);//Упадем в лимиты
       }
     }
-    insert tasks;
+    insert tasks;// ТОлько в after триггере
   }
 
   public void sendCustomNotification(Opportunity opportunity, List<User> recipients, String title) {
-    CustomNotificationType notificationType = [
+    CustomNotificationType notificationType = [//Выносится в менеджер
       SELECT Id, DeveloperName
       FROM CustomNotificationType
       WHERE DeveloperName = 'Bell_Notification_for_Chief_Betting_Manager'
