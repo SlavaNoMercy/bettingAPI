@@ -1,7 +1,7 @@
-@RestResource(urlMapping='/bettingAPI/new/opportunity')
+@RestResource(urlMapping='/bettingAPI/new/opportunity')//Плохой маппинг, лучше было бы betting/placeBet
 global without sharing class BettingAPI {
   @HttpPost
-  global static void createOpportunity() {
+  global static void createOpportunity() {//Отвратительные отступы
     RestRequest req = RestContext.request;
     RestResponse res = RestContext.response;
     try {
@@ -10,25 +10,25 @@ global without sharing class BettingAPI {
       ); 
       Opportunity opportunity = new Opportunity();
       if (
-        (bettingInput.playerID.length() == 18 ||
+        (bettingInput.playerID.length() == 18 ||// Повторяющаяся проверка, можно вынести в класс-менеджер как отдельный метод, и потом его уже вызывать
         bettingInput.playerID.length() == 15) &&
         (bettingInput.matchID.length() == 18 ||
         bettingInput.matchID.length() == 15)
       ) {
         opportunity = setBetPlayer(res, opportunity, bettingInput.playerID);
-        opportunity = setBetEvent(res, opportunity, bettingInput.matchID);
+        opportunity = setBetEvent(res, opportunity, bettingInput.matchID);//Повторяющееся присвоение - плохой тон, обычно значит что ты можешь два метода объединить
       } else {
         setErrorToResponse(
           res,
-          'Wrong Identifier of Player or Event (internal ID  must be 15 or 18 symbols lenth)!'
+          'Wrong Identifier of Player or Event (internal ID  must be 15 or 18 symbols lenth)!'//Почему не лэйбл?! На крайняк - константа!
         ); //custom label
         
         return;
       }
-      List<Bet_unit__c> betUnitsOnEvent = new List<Bet_Unit__c>();
+      List<Bet_unit__c> betUnitsOnEvent = new List<Bet_Unit__c>();//Все что ниже выглядит как отдельный метод
       Set<String> existingBetUnitNames = new Set<String>();
       try {
-        opportunity = BettingQueryManager.getExistingOpportunity(
+        opportunity = BettingQueryManager.getExistingOpportunity( 
           (Id) bettingInput.playerID
         );
         betUnitsOnEvent = BettingQueryManager.getExistingUnits(opportunity.Id);
@@ -38,7 +38,7 @@ global without sharing class BettingAPI {
       } catch (Exception e) {
       } 
       Double currentBetAmount = 0;
-      for (ParseJSONBettingInput.BetUnit newUnit : bettingInput.betUnits) {
+      for (ParseJSONBettingInput.BetUnit newUnit : bettingInput.betUnits) {//Все что ниже выглядит как отдельный метод
         Bet_Unit__c betUnit = new Bet_Unit__c();
         if (existingBetUnitNames.contains(newUnit.Name)) {
           setErrorToResponse(res, 'Cannot create 2 same bet Units!'); //custom label
@@ -51,7 +51,7 @@ global without sharing class BettingAPI {
         }
         betUnit.Bet_Amount__c = newUnit.Amount;
         betUnit.Coefficient__c = newUnit.Coefficient;
-        betUnit.Bet_Event__c = BettingQueryManager.getBetEvent(
+        betUnit.Bet_Event__c = BettingQueryManager.getBetEvent(//Опять издеваешся. Даже если ты кверю закинешь в мэнедждер - это все еще кверя в цикле!!!
             (Id) bettingInput.matchID
           )
           .Id;
