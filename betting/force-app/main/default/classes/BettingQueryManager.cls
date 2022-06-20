@@ -2,7 +2,7 @@ public with sharing class BettingQueryManager {
   //Форматирование, убрать ненужные зануления, добавить проверку входящих параметров, убрать излишки переменных
   public static Lead getLeadPlayer(Id playerId) {
     try {
-      return [
+      return [ // упадет если не будет результатов
         SELECT Id, LastName, Players_Fund__c
         FROM Lead
         WHERE Id = :playerId
@@ -14,7 +14,7 @@ public with sharing class BettingQueryManager {
   }
   public static Contact getContactPlayer(Id playerId) {
     try {
-      return [
+      return [// упадет если не будет результатов
         SELECT Id, Name, Players_Fund__c
         FROM Contact
         WHERE Id = :playerId
@@ -26,7 +26,7 @@ public with sharing class BettingQueryManager {
   }
   public static Product2 getBetEvent(Id matchId) {
     try {
-      return [
+      return [// упадет если не будет результатов
         SELECT Id, Name, Multiplier__c, Event_Date__c
         FROM Product2
         WHERE Id = :matchId
@@ -49,7 +49,7 @@ public with sharing class BettingQueryManager {
   }
   public static Opportunity getExistingOpportunity(Id playerId) {
     try {
-      return [
+      return [// упадет если не будет результатов
         SELECT
           Id,
           Name,
@@ -69,7 +69,7 @@ public with sharing class BettingQueryManager {
 
   public static String getCustomLabel(String language, String name) {
     try {
-      return [
+      return [// упадет если не будет результатов
         SELECT
           Id,
           Name,
