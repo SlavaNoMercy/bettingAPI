@@ -1,4 +1,5 @@
 global class BetStatusUpdateBtch implements Database.Batchable<SObject>, Database.Stateful {
+  //Батч не имеет смысла от слова совсем. Больше похож на future метод. Этот батч должен был обрабатывать ВСЕ возможные Opportunity под определенное событие
   public Opportunity opportunity;
   public BetStatusUpdateBtch(Opportunity opportunity) {
     this.opportunity = opportunity;
