@@ -2,7 +2,7 @@
 public without sharing class BettingQueryManagerTest {
   @isTest
   static void testQueryManager() {
-    Lead testLead = new Lead(
+    Lead testLead = new Lead(//Это все выносится в сетап
       LastName = 'testLead',
       Company = 'none',
       Players_Fund__c = 250
@@ -38,19 +38,19 @@ public without sharing class BettingQueryManagerTest {
     insert testBetUnits;
 
     Lead existingLeadRecord = BettingQueryManager.getLeadPlayer(testLead.Id);
-    Lead notExistingLeadRecord = BettingQueryManager.getLeadPlayer(
+    Lead notExistingLeadRecord = BettingQueryManager.getLeadPlayer( // Никогда, совершенно никогда мы не используем айдишку!
       '00Q5j00000CEtIjEAL'
     );
     Contact existingContactRecord = BettingQueryManager.getContactPlayer(
       testContact.Id
     );
-    Contact notExistingContactRecord = BettingQueryManager.getContactPlayer(
+    Contact notExistingContactRecord = BettingQueryManager.getContactPlayer(//!!!!!!
       '00Q5j00000CEtIjEAL'
     );
     Product2 existingEventRecord = BettingQueryManager.getBetEvent(
       testEvent.Id
     );
-    Product2 notExistingEventRecord = BettingQueryManager.getBetEvent(
+    Product2 notExistingEventRecord = BettingQueryManager.getBetEvent(//!!!!!!
       '00Q5j00000CEtIjEAL'
     );
     Opportunity existingBetRecord = BettingQueryManager.getExistingOpportunity(
@@ -62,11 +62,11 @@ public without sharing class BettingQueryManagerTest {
     List<Bet_Unit__c> existingUnitRecords = BettingQueryManager.getExistingUnits(
       testOpportunity.Id
     );
-    List<Bet_Unit__c> notExistingUnitRecords = BettingQueryManager.getExistingUnits(
+    List<Bet_Unit__c> notExistingUnitRecords = BettingQueryManager.getExistingUnits(//!!!!!!
       '00Q5j00000CEtIjEAL'
     );
 
-    System.assertEquals('testLead', existingLeadRecord.LastName);
+    System.assertEquals('testLead', existingLeadRecord.LastName);// Под каждый метод отдельный тестовый метод!
     System.assertEquals('testContact', existingContactRecord.Name);
     System.assertEquals('testMatch', existingEventRecord.Name);
     System.assertEquals('testOpportunity', existingBetRecord.Name);
